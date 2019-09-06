@@ -1,4 +1,5 @@
-﻿using MeetingPointAPI.Services;
+﻿using MeetingPointAPI.Repositories;
+using MeetingPointAPI.Services;
 using MeetingPointAPI.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
@@ -10,9 +11,9 @@ namespace MeetingPointAPI.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddStores(this IServiceCollection services, string connectionString)
+        public static IServiceCollection AddRepositories(this IServiceCollection services, string connectionString)
         {
-            //services.AddTransient(provider => new DbRepository(connectionString));
+            services.AddTransient(provider => new DBRepository(connectionString));
 
             return services;
         }

@@ -24,7 +24,7 @@ namespace MeetingPointAPI
             services.AddMvc();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.ConfigureSwagger();
-            services.AddStores(configuration.GetConnectionString("AzureDBConnection"));
+            services.AddRepositories(configuration.GetConnectionString("AzureDBConnection"));
             services.AddServices();
         }
 
