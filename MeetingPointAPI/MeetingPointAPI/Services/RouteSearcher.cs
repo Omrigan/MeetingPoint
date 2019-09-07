@@ -37,6 +37,7 @@ namespace MeetingPointAPI.Services
         {
             return new MemberRoute
             {
+                MemberLocation = from,
                 MemberId = memberId,
                 Route = await GetHereRoutes(from, to, time)
             };

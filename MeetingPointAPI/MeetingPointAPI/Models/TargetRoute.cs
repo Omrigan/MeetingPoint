@@ -12,6 +12,7 @@ namespace MeetingPointAPI.Models
 
     public class MemberRoute
     {
+        public Coordinate MemberLocation { get; set; }
         public string MemberId { get; set; }
         public List<TargetRoute> Route { get; set; }
     }
