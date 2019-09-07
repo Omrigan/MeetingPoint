@@ -120,8 +120,8 @@ namespace MeetingPointAPI.Controllers
             var locations = (await _dbRepository.InsertLocations(places.Take(_appSettings.PlacesLimit).Select(place => new LocationEntity
             {
                 Title = place.Title,
-                Longitude = place.Position[0],
-                Latitude = place.Position[1],
+                Longitude = place.Position[1],
+                Latitude = place.Position[0],
                 Category = place.Category?.Title,
                 Distance = place.Distance,
                 Href = place.Href,
