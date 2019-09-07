@@ -98,7 +98,14 @@ namespace MeetingPointAPI.Controllers
         [HttpGet(nameof(GetResult) + "/{groupUid}")]
         public async Task<IActionResult> GetResult([FromRoute]Guid groupUid)
         {
-            var result = await _dbRepository.GetPotentialMembersRoutes(groupUid);
+            var routes = await _dbRepository.GetPotentialMembersRoutes(groupUid);
+
+            var result = routes.Select(route => new RoutesToPlace
+            {
+                GroupUid = route.MemberRoutes.GroupUid,
+                Place = ModelConverter.ToPlace(route.Place),
+                MemberRoutes = JsonConvert.DeserializeObject<List<MemberRoute>>(route.MemberRoutes.MemberRoutes)
+            });
 
             return Ok(result);
         }
