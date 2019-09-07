@@ -24,6 +24,12 @@ namespace MeetingPointAPI.Models
         public string Type { get; set; }
         public string Href { get; set; }
         public string Id { get; set; }
+
+        public Coordinate GetCoordinate() => new Coordinate
+        {
+            Latitude = Position[0],
+            Longitude = Position[1]
+        };
     }
 
     public class HereExploreCategory

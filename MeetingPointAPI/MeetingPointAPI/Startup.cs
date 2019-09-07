@@ -18,9 +18,8 @@ namespace MeetingPointAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOptions();
-            services.AddCors(o =>
-                o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+            services.AddSettingsAndOptions(configuration);
+            services.AddCors(o => o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
             services.AddMvc();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.ConfigureSwagger();

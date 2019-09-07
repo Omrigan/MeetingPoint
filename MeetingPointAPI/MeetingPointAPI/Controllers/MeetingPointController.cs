@@ -1,10 +1,12 @@
-﻿using MeetingPointAPI.Helpers;
+﻿using MeetingPointAPI.Entities;
+using MeetingPointAPI.Helpers;
 using MeetingPointAPI.Models;
 using MeetingPointAPI.Repositories;
 using MeetingPointAPI.Services.Interfaces;
 using MeetingPointAPI.ViewModels;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +21,15 @@ namespace MeetingPointAPI.Controllers
     {
         private readonly IHereService _hereService;
         private readonly DBRepository _dbRepository;
+        private readonly IRouteSearcher _routeSearcher;
+        private readonly AppSettings _appSettings;
 
-        public MeetingPointController(IHereService hereService, DBRepository dbRepository)
+        public MeetingPointController(AppSettings appSettings, IHereService hereService, DBRepository dbRepository, IRouteSearcher routeSearcher)
         {
             _hereService = hereService;
             _dbRepository = dbRepository;
+            _routeSearcher = routeSearcher;
+            _appSettings = appSettings;
         }
 
         /// <summary> Метод добавления местоположения участника группы </summary>
@@ -71,8 +77,8 @@ namespace MeetingPointAPI.Controllers
                 return BadRequest();
 
             var memberLocations = (await _dbRepository.GetGroupMemberLocations(groupMemberLocationVM.GroupUid))?.ToList();
-            if (memberLocations == null || memberLocations.Count <= 1)
-                return Forbid();
+            if (memberLocations == null)
+                return NoContent();
 
             var locations = memberLocations.Select(m => m.GetCoordinate()).ToList();
             var targetPoint = CoordinateHelper.GetTargetCoordinate(locations);
@@ -82,9 +88,10 @@ namespace MeetingPointAPI.Controllers
             if (result == null || result?.Results?.Items == null || !result.Results.Items.Any())
                 return NoContent();
 
-            await SavePotentialRoutes(groupMemberLocationVM.GroupUid, result.Results.Items);
+            await SavePotentialRoutes(groupMemberLocationVM.GroupUid, memberLocations, groupMemberLocationVM.Time ?? DateTime.Now, result.Results.Items);
 
-            return Ok(result);
+            var webSiteEndpoint = $"{_appSettings.WebSiteDomain}/result/{groupMemberLocationVM.GroupUid}";
+            return Ok(webSiteEndpoint);
         }
 
         /// <summary> Метод получения результата по сбору группы </summary>
@@ -95,10 +102,27 @@ namespace MeetingPointAPI.Controllers
             return Ok();
         }
 
-        private async Task SavePotentialRoutes(Guid groupUid, IEnumerable<HereExploreItem> places)
+        private async Task SavePotentialRoutes(Guid groupUid, List<MemberLocationEntity> memberLocations, DateTime time, IEnumerable<HereExploreItem> places)
         {
             await _dbRepository.RemoveAllRoutes(groupUid);
 
+            int  placesLimit = 10;
+
+            var coordinate = places.First().GetCoordinate();
+
+            //await Task.WhenAll<>
+
+            //places.Take(10).
+
+
+            var results = new List<List<TargetRoute>>();
+            foreach(var memberLocation in memberLocations)
+            {
+                var result = await _routeSearcher.GetRoutes(memberLocation.GetCoordinate(), coordinate, time);
+                results.Add(result);
+            }
+
+            
 
         }
     }
