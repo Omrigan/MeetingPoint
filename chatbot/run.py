@@ -7,6 +7,8 @@ from tinydb import TinyDB, Query
 import requests
 import yaml
 
+import uuid
+
 
 
 db = TinyDB('db.json')
@@ -14,6 +16,14 @@ db = TinyDB('db.json')
 update_id = None
 meetings = db.table('meetings')
 
+def make_request(endpoint, data):
+    url = "http://meetingpointapi.azurewebsites.net/api/MeetingPoint/%s" % endpoint
+    print("Requesting", url, data)
+    result = requests.post(url, json=data)
+    print(result.status_code)
+    print(result.text)
+    return result
+    # return result.json()
 
 def main():
     """Run the bot."""
@@ -75,7 +85,7 @@ def get_cats_keyboard(meeting):
 
 
 def new_meeting(update, chat):
-    meeting = {"guid": chat['id'],
+    meeting = {"guid": str(uuid.uuid4()),
                     "chats": [chat['id']],
                     "locations": [],
                     'state': 'categories',
@@ -130,12 +140,13 @@ def write_location(update, meeting, location):
     if not done:
         meeting["locations"].append({"uid": uid, "location": location})
         update.message.reply_text("Локация от %s записана" % uid)
+    make_request("AddLocation", {"coordinate": location, "memberId": uid, "groupUid": str(meeting['guid'])})
     save_meeting(meeting)
 
 
 
 def calculate(update, meeting):
-    link = "test"
+    result = make_request("Calculate", {"groupUid": meeting['guid'], "category": meeting['selected_categories']})
     update.message.reply_text("Ссылка на результат: %s" % link)
 
 def clear(update, meeting):
