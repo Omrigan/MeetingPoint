@@ -1,10 +1,12 @@
 ﻿using MeetingPointAPI.Helpers;
+using MeetingPointAPI.Models;
 using MeetingPointAPI.Repositories;
 using MeetingPointAPI.Services.Interfaces;
 using MeetingPointAPI.ViewModels;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -77,6 +79,10 @@ namespace MeetingPointAPI.Controllers
             var radius = CoordinateHelper.GetMaxDistance(targetPoint, locations);
 
             var result = await _hereService.GetPlaces(targetPoint, groupMemberLocationVM.Category, (int)radius);
+            if (result == null || result?.Results?.Items == null || !result.Results.Items.Any())
+                return NoContent();
+
+            await SavePotentialRoutes(groupMemberLocationVM.GroupUid, result.Results.Items);
 
             return Ok(result);
         }
@@ -87,6 +93,13 @@ namespace MeetingPointAPI.Controllers
         {
 
             return Ok();
+        }
+
+        private async Task SavePotentialRoutes(Guid groupUid, IEnumerable<HereExploreItem> places)
+        {
+            await _dbRepository.RemoveAllRoutes(groupUid);
+
+
         }
     }
 }

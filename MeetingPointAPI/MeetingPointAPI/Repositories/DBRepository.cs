@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MeetingPointAPI.Repositories
@@ -139,6 +138,45 @@ namespace MeetingPointAPI.Repositories
 
             using (var conn = CreateConnection())
                 return await conn.QueryAsync<MemberLocationEntity>(sqlCommand);
+        }
+
+        public async Task RemoveAllRoutes(Guid groupUid)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                delete [dbo].[Routes]
+                where GroupUid = @groupUid",
+                new { @groupUid = groupUid });
+
+            using (var conn = CreateConnection())
+                await conn.ExecuteAsync(sqlCommand);
+        }
+
+        public async Task InsertRoute(RouteEntity routeEntity)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                insert [dbo].[Routes] (GroupUid, LocationId, MemberRoutes)
+                values (@groupUid, @locationId, @memberRoutes)",
+            new
+            {
+                @groupUid = routeEntity.GroupUid,
+                @locationId = routeEntity.LocatioId,
+                @memberRoutes = routeEntity.MemberRoutes
+            });
+
+            using (var conn = CreateConnection())
+                await conn.ExecuteAsync(sqlCommand);
+        }
+
+        public async Task<IEnumerable<RouteEntity>> GetRoutes(Guid groupUid)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                select *
+                from [dbo].[Routes]
+                where GroupUid = @groupUid",
+            new { @groupUid = groupUid });
+
+            using (var conn = CreateConnection())
+                return await conn.QueryAsync<RouteEntity>(sqlCommand);
         }
     }
 }
