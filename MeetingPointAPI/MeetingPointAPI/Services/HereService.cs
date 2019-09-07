@@ -1,6 +1,7 @@
 ﻿using MeetingPointAPI.Helpers;
 using MeetingPointAPI.Models;
 using MeetingPointAPI.Services.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -28,6 +29,24 @@ namespace MeetingPointAPI.Services
                 .ToString();
 
             return await HttpHepler.GetResult<HereExploreResponseResult>(url);
+        }
+
+        public async Task<HereRouteResponse> GetRoutes(DateTime time, Coordinate from, Coordinate to, string mode = "publicTransport")
+        {
+            var url = new StringBuilder()
+                .Append("https://route.api.here.com/routing/7.2/calculateroute.json")
+                .Append($"?app_id={appId}")
+                .Append($"&app_code={appCode}")
+                .Append($"&language=ru-ru")
+                .Append($"&mode=fastest;{mode}")
+                .Append($"&maneuverattributes=po,ti,pt,ac,di,fj,ix")
+                .Append($"&routeattributes=sh,gr")
+                .Append($"&waypoint0=geo!stopOver!{from.Latitude.ToString(NFI)},{from.Longitude.ToString(NFI)}")
+                .Append($"&waypoint1=geo!stopOver!{to.Latitude.ToString(NFI)},{to.Longitude.ToString(NFI)}")
+                .Append($"&departure={time.ToString("yyyy-MM-ddTHH:mm:ss")}")
+                .ToString();
+
+            return await HttpHepler.GetResult<HereRouteResponse>(url);
         }
     }
 }

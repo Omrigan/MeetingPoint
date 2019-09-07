@@ -7,5 +7,6 @@ namespace MeetingPointAPI.ViewModels
     {
         public Guid GroupUid { get; set; }
         public IEnumerable<string> Category { get; set; }
+        public DateTime? Time { get; set; }
     }
 }
