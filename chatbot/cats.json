@@ -1,0 +1,168 @@
+- id: eat-drink
+  title: Еда и напитки
+- id: restaurant
+  title: Рестораны
+- id: snacks-fast-food
+  title: Закусочные и рестораны быстрого питания
+- id: bar-pub
+  title: Бар
+- id: coffee-tea
+  title: Кофе / Чай
+- id: coffee
+  title: Кофе
+- id: tea
+  title: Чай
+- id: going-out
+  title: Развлечения
+- id: dance-night-club
+  title: Дискотеки и ночные клубы
+- id: cinema
+  title: Кинотеатры
+- id: theatre-music-culture
+  title: Театры, концертные залы, учреждения культуры
+- id: casino
+  title: Казино
+- id: sights-museums
+  title: Достопримечательности и музеи
+- id: landmark-attraction
+  title: Интересные места и достопримечательности
+- id: museum
+  title: Музеи
+- id: transport
+  title: Транспорт
+- id: airport
+  title: Аэропорты
+- id: railway-station
+  title: Железнодорожная станция
+- id: public-transport
+  title: Общественный транспорт
+- id: ferry-terminal
+  title: Паромный терминал
+- id: taxi-stand
+  title: Стоянка такси
+- id: accommodation
+  title: Жилье
+- id: hotel
+  title: Отели
+- id: motel
+  title: Мотели
+- id: hostel
+  title: Хостел
+- id: camping
+  title: Кемпинги
+- id: shopping
+  title: Покупки
+- id: kiosk-convenience-store
+  title: Киоски, круглосуточные магазины
+- id: wine-and-liquor
+  title: Алкогольные напитки
+- id: mall
+  title: Торговый центр
+- id: department-store
+  title: Универмаг
+- id: food-drink
+  title: Еда и напитки
+- id: bookshop
+  title: Книжный магазин
+- id: pharmacy
+  title: Аптека
+- id: electronics-shop
+  title: Электроника
+- id: hardware-house-garden-shop
+  title: Строительные/садовые товары
+- id: clothing-accessories-shop
+  title: Одежда и аксессуары
+- id: sport-outdoor-shop
+  title: Открытая спортивная площадка
+- id: shop
+  title: Магазины
+- id: business-services
+  title: Бизнес и услуги
+- id: atm-bank-exchange
+  title: Банкоматы, банки и обмен валюты
+- id: police-emergency
+  title: Полиция и службы экстренной помощи
+- id: ambulance-services
+  title: Скорая помощь
+- id: fire-department
+  title: Пожарный участок
+- id: police-station
+  title: Отделение полиции
+- id: post-office
+  title: Почта
+- id: tourist-information
+  title: Информация для туристов
+- id: petrol-station
+  title: Бензоколонка
+- id: ev-charging-station
+  title: Пункт зарядки электромобилей
+- id: car-rental
+  title: Прокат автомобилей
+- id: car-dealer-repair
+  title: Продажа / Ремонт автомобилей
+- id: travel-agency
+  title: Туристические агентства
+- id: communication-media
+  title: Связь/СМИ
+- id: business-industry
+  title: Бизнес и производство
+- id: service
+  title: Услуги
+- id: facilities
+  title: Объекты обслуживания
+- id: hospital-health-care-facility
+  title: Больница или учреждения здравоохранения
+- id: hospital
+  title: Больница
+- id: government-community-facility
+  title: Государственные и общественные учреждения
+- id: education-facility
+  title: Образовательное учреждение
+- id: library
+  title: Библиотеки
+- id: fair-convention-facility
+  title: Ярмарки и дворцы съездов
+- id: parking-facility
+  title: Стоянки
+- id: toilet-rest-area
+  title: Общественные туалеты и зоны отдыха
+- id: sports-facility-venue
+  title: Спортивное заведение
+- id: facility
+  title: Предприятия
+- id: religious-place
+  title: Религиозное заведение
+- id: leisure-outdoor
+  title: Отдых и развлечения
+- id: recreation
+  title: Места отдыха
+- id: amusement-holiday-park
+  title: Тематический парк
+- id: zoo
+  title: Зоопарк
+- id: administrative-areas-buildings
+  title: Административные зоны/здания
+- id: administrative-region
+  title: Административные районы
+- id: city-town-village
+  title: Города, поселки или деревни
+- id: outdoor-area-complex
+  title: Открытые площадки и комплексы
+- id: building
+  title: Здания
+- id: street-square
+  title: Улица или площадь
+- id: intersection
+  title: Перекресток
+- id: postal-area
+  title: Почтовый участок
+- id: natural-geographical
+  title: Природные или археологические
+- id: body-of-water
+  title: Водоемы
+- id: mountain-hill
+  title: Горы или холмы
+- id: undersea-feature
+  title: Подводные объекты
+- id: forest-heath-vegetation
+  title: Леса, поля и другая растительность
