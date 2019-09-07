@@ -117,7 +117,7 @@ namespace MeetingPointAPI.Controllers
             var groupRoutes = (await Task.WhenAll(places.Take(_appSettings.PlacesLimit).Select(place =>
                 _routeSearcher.GetGroupRoutes(memberLocations, place.Title, place.GetCoordinate(), time)))).ToList();
 
-            var locations = (await _dbRepository.InsertLocations(places.Take(_appSettings.PlacesLimit).Select(place => new LocationEntity
+            var locations = await _dbRepository.InsertLocations(places.Take(_appSettings.PlacesLimit).Select(place => new LocationEntity
             {
                 Title = place.Title,
                 Longitude = place.Position[1],
@@ -128,12 +128,12 @@ namespace MeetingPointAPI.Controllers
                 Icon = place.Icon,
                 Vicinity = place.Vicinity,
                 Type = place.Type
-            }))).ToDictionary(location => location.Title);
+            }));
 
             await _dbRepository.InsertRoutes(groupRoutes.Select(groupRoute => new RouteEntity
             {
                 GroupUid = groupUid,
-                LocationId = locations.GetValueOrDefault(groupRoute.Title).Id,
+                LocationId = locations.First(location => location.Title == groupRoute.Title).Id,
                 SumTime = (int)groupRoute.SumTime,
                 MemberRoutes = JsonConvert.SerializeObject(groupRoute.MemberRoutes)
             }));
