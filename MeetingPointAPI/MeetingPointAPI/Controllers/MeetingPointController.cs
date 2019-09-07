@@ -1,9 +1,11 @@
-﻿using MeetingPointAPI.Repositories;
+﻿using MeetingPointAPI.Helpers;
+using MeetingPointAPI.Repositories;
 using MeetingPointAPI.Services.Interfaces;
 using MeetingPointAPI.ViewModels;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MeetingPointAPI.Controllers
@@ -66,7 +68,17 @@ namespace MeetingPointAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return Ok();
+            var memberLocations = (await _dbRepository.GetGroupMemberLocations(groupMemberLocationVM.GroupUid))?.ToList();
+            if (memberLocations == null || memberLocations.Count <= 1)
+                return Forbid();
+
+            var locations = memberLocations.Select(m => m.GetCoordinate()).ToList();
+            var targetPoint = CoordinateHelper.GetTargetCoordinate(locations);
+            var radius = CoordinateHelper.GetMaxDistance(targetPoint, locations);
+
+            var result = await _hereService.GetPlaces(targetPoint, groupMemberLocationVM.Category, (int)radius);
+
+            return Ok(result);
         }
 
         /// <summary> Метод получения результата по сбору группы </summary>

@@ -7,7 +7,7 @@ namespace MeetingPointAPI.Helpers
 {
     public static class HttpHepler
     {
-        private static async Task<T> Execute<T>(string url) where T : class
+        public static async Task<T> GetResult<T>(string url) where T : class
         {
             try
             {
@@ -18,7 +18,7 @@ namespace MeetingPointAPI.Helpers
                 var responseBody = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(responseBody);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }

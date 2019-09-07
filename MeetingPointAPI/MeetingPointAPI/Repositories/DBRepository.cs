@@ -1,7 +1,9 @@
 ﻿using Dapper;
+using MeetingPointAPI.Entities;
 using MeetingPointAPI.Models;
 using MeetingPointAPI.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -88,7 +90,7 @@ namespace MeetingPointAPI.Repositories
         public async Task<int?> GetMemberLocationId(string memberId, Guid groupUid)
         {
             var sqlCommand = new CommandDefinition(@"
-                select Id
+                select top 1 Id
                 from [dbo].[MemberLocations]
                 where MemberId = @memberId and GroupUid = @groupUid",
                 new
@@ -125,6 +127,18 @@ namespace MeetingPointAPI.Repositories
 
             using (var conn = CreateConnection())
                 await conn.ExecuteAsync(sqlCommand);
+        }
+
+        public async Task<IEnumerable<MemberLocationEntity>> GetGroupMemberLocations(Guid groupUid)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                select *
+                from [dbo].[MemberLocations]
+                where GroupUid = @groupUid",
+                new { @groupUid = groupUid });
+
+            using (var conn = CreateConnection())
+                return await conn.QueryAsync<MemberLocationEntity>(sqlCommand);
         }
     }
 }
