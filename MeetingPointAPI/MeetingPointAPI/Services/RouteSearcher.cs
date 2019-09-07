@@ -30,55 +30,54 @@ namespace MeetingPointAPI.Services
             if (result == null)
                 return null;
 
-            return result.Response.Route
-                .Select(r =>
+            return result.Response.Route.Select(r =>
+            {
+                var maneuvers = r.Leg.FirstOrDefault().Maneuver;
+                var transports = r.PublicTransportLine;
+
+                var routes = new List<TransportRoute>();
+                int i = 0;
+                int travelTime = 0;
+                var route = new TransportRoute() { Transport = "Пешком", Points = new List<RoutePoint>() };
+                foreach (var maneuver in maneuvers)
                 {
-                    var maneuvers = r.Leg.FirstOrDefault().Maneuver;
-                    var transports = r.PublicTransportLine;
-
-                    var routes = new List<TransportRoute>();
-                    int i = 0;
-                    int travelTime = 0;
-                    var route = new TransportRoute() { Transport = "Пешком", Points = new List<RoutePoint>() };
-                    foreach (var maneuver in maneuvers)
+                    var p = new RoutePoint
                     {
-                        var p = new RoutePoint
+                        Description = maneuver.StopName,
+                        Time = time.AddSeconds(travelTime).ToString("HH:mm:ss"),
+                        Coordinate = new Coordinate
                         {
-                            Description = maneuver.StopName,
-                            Time = time.AddSeconds(travelTime).ToString("HH:mm:ss"),
-                            Coordinate = new Coordinate
-                            {
-                                Latitude = maneuver.Position.Latitude,
-                                Longitude = maneuver.Position.Longitude
-                            }
-                        };
-                        route.Points.Add(p);
-                        travelTime += maneuver.TravelTime;
-
-                        if (maneuver.Action == "enter")
-                        {
-                            if (route.Points.Count() > 1)
-                                routes.Add(route);
-
-                            route = new TransportRoute() { Transport = $"Автобус {transports[i].LineName}", Points = new List<RoutePoint>() { p } };
-                            i++;
+                            Latitude = maneuver.Position.Latitude,
+                            Longitude = maneuver.Position.Longitude
                         }
-
-                        if (maneuver.Action == "leave")
-                        {
-                            routes.Add(route);
-                            route = new TransportRoute() { Transport = $"Пешком", Points = new List<RoutePoint>() };
-                        }
-                    }
-                    routes.Add(route);
-
-                    return new TargetRoute
-                    {
-                        Routes = routes,
-                        TravelTime = r.Leg.FirstOrDefault().TravelTime
                     };
-                })
-                .ToList();
+                    route.Points.Add(p);
+                    travelTime += maneuver.TravelTime;
+
+                    if (maneuver.Action == "enter")
+                    {
+                        if (route.Points.Count() > 1)
+                            routes.Add(route);
+
+                        route = new TransportRoute() { Transport = $"Автобус {transports[i].LineName}", Points = new List<RoutePoint>() { p } };
+                        i++;
+                    }
+
+                    if (maneuver.Action == "leave")
+                    {
+                        routes.Add(route);
+                        route = new TransportRoute() { Transport = $"Пешком", Points = new List<RoutePoint>() };
+                    }
+                }
+                routes.Add(route);
+
+                return new TargetRoute
+                {
+                    Routes = routes,
+                    TravelTime = r.Leg.FirstOrDefault().TravelTime
+                };
+            })
+            .ToList();
         }
     }
 }
