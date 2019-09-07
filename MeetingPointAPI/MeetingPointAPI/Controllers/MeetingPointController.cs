@@ -6,7 +6,6 @@ using MeetingPointAPI.Services.Interfaces;
 using MeetingPointAPI.ViewModels;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -106,24 +105,10 @@ namespace MeetingPointAPI.Controllers
         {
             await _dbRepository.RemoveAllRoutes(groupUid);
 
-            int  placesLimit = 10;
+            var groupRoutes = (await Task.WhenAll(places.Take(_appSettings.PlacesLimit).Select(place =>
+                _routeSearcher.GetGroupRoutes(memberLocations, place.GetCoordinate(), time)))).ToList();
 
-            var coordinate = places.First().GetCoordinate();
-
-            //await Task.WhenAll<>
-
-            //places.Take(10).
-
-
-            var results = new List<List<TargetRoute>>();
-            foreach(var memberLocation in memberLocations)
-            {
-                var result = await _routeSearcher.GetRoutes(memberLocation.GetCoordinate(), coordinate, time);
-                results.Add(result);
-            }
-
-            
-
+            groupRoutes.Sort((r1, r2) => r1.SumTime.CompareTo(r2.SumTime));
         }
     }
 }

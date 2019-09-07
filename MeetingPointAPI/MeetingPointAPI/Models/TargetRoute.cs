@@ -3,6 +3,18 @@ using System.Linq;
 
 namespace MeetingPointAPI.Models
 {
+    public class GroupRoutes
+    {
+        public List<MemberRoute> MemberRoutes { get; set; }
+        public double SumTime { get; set; }
+    }
+
+    public class MemberRoute
+    {
+        public string MemberId { get; set; }
+        public List<TargetRoute> Route { get; set; }
+    }
+
     public class TargetRoute
     {
         public int TravelTime { get; set; }
