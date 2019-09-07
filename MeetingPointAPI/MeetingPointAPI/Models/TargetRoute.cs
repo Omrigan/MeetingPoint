@@ -7,6 +7,7 @@ namespace MeetingPointAPI.Models
     {
         public List<MemberRoute> MemberRoutes { get; set; }
         public double SumTime { get; set; }
+        public string Title { get; set; }
     }
 
     public class MemberRoute

@@ -20,7 +20,7 @@ namespace MeetingPointAPI.Services
             _dbRepository = dbRepository;
         }
 
-        public async Task<GroupRoutes> GetGroupRoutes(List<MemberLocationEntity> memberLocations, Coordinate to, DateTime time)
+        public async Task<GroupRoutes> GetGroupRoutes(List<MemberLocationEntity> memberLocations, string title, Coordinate to, DateTime time)
         {
             var groupRoutes = (await Task.WhenAll(memberLocations
                 .Select(memberLocation => GetMemberRoutes(memberLocation.MemberId, memberLocation.GetCoordinate(), to, time)))).ToList();
@@ -28,7 +28,8 @@ namespace MeetingPointAPI.Services
             return new GroupRoutes
             {
                 MemberRoutes = groupRoutes,
-                SumTime = groupRoutes.Sum(route => route.Route.First().TravelTime)
+                SumTime = groupRoutes.Sum(route => route.Route.First().TravelTime),
+                Title = title
             };
         }
 

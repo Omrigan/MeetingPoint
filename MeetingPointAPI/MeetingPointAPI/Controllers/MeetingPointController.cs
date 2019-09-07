@@ -6,6 +6,7 @@ using MeetingPointAPI.Services.Interfaces;
 using MeetingPointAPI.ViewModels;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,8 +98,9 @@ namespace MeetingPointAPI.Controllers
         [HttpGet(nameof(GetResult) + "/{groupUid}")]
         public async Task<IActionResult> GetResult([FromRoute]Guid groupUid)
         {
+            var result = await _dbRepository.GetPotentialMembersRoutes(groupUid);
 
-            return Ok();
+            return Ok(result);
         }
 
         private async Task SavePotentialRoutes(Guid groupUid, List<MemberLocationEntity> memberLocations, DateTime time, IEnumerable<HereExploreItem> places)
@@ -106,9 +108,28 @@ namespace MeetingPointAPI.Controllers
             await _dbRepository.RemoveAllRoutes(groupUid);
 
             var groupRoutes = (await Task.WhenAll(places.Take(_appSettings.PlacesLimit).Select(place =>
-                _routeSearcher.GetGroupRoutes(memberLocations, place.GetCoordinate(), time)))).ToList();
+                _routeSearcher.GetGroupRoutes(memberLocations, place.Title, place.GetCoordinate(), time)))).ToList();
 
-            groupRoutes.Sort((r1, r2) => r1.SumTime.CompareTo(r2.SumTime));
+            var locations = (await _dbRepository.InsertLocations(places.Take(_appSettings.PlacesLimit).Select(place => new LocationEntity
+            {
+                Title = place.Title,
+                Longitude = place.Position[0],
+                Latitude = place.Position[1],
+                Category = place.Category?.Title,
+                Distance = place.Distance,
+                Href = place.Href,
+                Icon = place.Icon,
+                Vicinity = place.Vicinity,
+                Type = place.Type
+            }))).ToDictionary(location => location.Title);
+
+            await _dbRepository.InsertRoutes(groupRoutes.Select(groupRoute => new RouteEntity
+            {
+                GroupUid = groupUid,
+                LocationId = locations.GetValueOrDefault(groupRoute.Title).Id,
+                SumTime = (int)groupRoute.SumTime,
+                MemberRoutes = JsonConvert.SerializeObject(groupRoute.MemberRoutes)
+            }));
         }
     }
 }
