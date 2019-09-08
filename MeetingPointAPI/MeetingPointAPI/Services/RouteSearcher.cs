@@ -23,7 +23,9 @@ namespace MeetingPointAPI.Services
         public async Task<GroupRoutes> GetGroupRoutes(List<MemberLocationEntity> memberLocations, string title, Coordinate to, DateTime time)
         {
             var groupRoutes = (await Task.WhenAll(memberLocations
-                .Select(memberLocation => GetMemberRoutes(memberLocation.MemberId, memberLocation.GetCoordinate(), to, time)))).ToList();
+                .Select(memberLocation => GetMemberRoutes(memberLocation.MemberId, memberLocation.GetCoordinate(), to, time))))
+                .Where(route => route.Route != null)
+                .ToList();
 
             return new GroupRoutes
             {
