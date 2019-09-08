@@ -21,7 +21,7 @@ app_id="nCSzEMs5Mt4xNwpSu67q"
 app_code="BKcZWZqhrhY2sMaIlmKh6Q"
 
 def make_request(endpoint, data):
-    url = "http://meetingpointapi.azurewebsites.net/api/MeetingPoint/%s" % endpoint
+    url = "http://meetingpointserver.azurewebsites.net/api/MeetingPoint/%s" % endpoint
     print("Requesting", url, data)
     result = requests.post(url, json=data)
     print(result.status_code)
@@ -29,10 +29,11 @@ def make_request(endpoint, data):
     return result
 
 def get_data(guid):
-    url = "http://meetingpointapi.azurewebsites.net/api/MeetingPoint/GetResult/%s" % guid
+    url = "http://meetingpointserver.azurewebsites.net/api/MeetingPoint/GetResult/%s" % guid
     result = requests.get(url)
     print(result.status_code)
     print(result.text)
+    data = result.json()
     return result.json()
 
 def geocode(value):
@@ -144,7 +145,7 @@ def update_categories(update, meeting):
     elif txt.startswith("Готово"):
         result_markup = telegram.ReplyKeyboardRemove() 
         meeting['state'] = 'await'
-        result_text = "Начинаем планирование локаций."
+        result_text = "Начинаем планирование встречи. Присылайте свои локации. Если мы в групповом чате, присылать локацию нужно ответом на сообщение!"
     else:
         return False 
     result_text+= " Категории: " + ", ".join(id_to_title[id] for id in meeting['selected_categories'])
@@ -166,7 +167,8 @@ def write_location(update, meeting, uid, location):
         update.message.reply_text("Локация от %s записана" % uid)
     make_request("AddLocation", {"coordinate": location, "memberId": uid, "groupUid": str(meeting['guid'])})
     save_meeting(meeting)
-    send_link(update, meeting)
+    if meeting['state'] == 'calculated':
+        send_link(update, meeting)
 
 
 def send_link(update, meeting):
@@ -187,6 +189,9 @@ def clear(update, meeting):
 def add(update, meeting):
     txt = update.message.text
     tokens = txt.split(" ")
+    if len(tokens)<3:
+        update.message.reply_text("Попробуйте переформулировать")
+        return
     name = tokens[1]
     value = " ".join(tokens[2:])
     result = geocode(value)
@@ -214,7 +219,7 @@ def show(update, meeting):
 def process(update):
     if update.message:  # your bot can receive updates without messages
         meeting = get_meeting(update.message.chat)
-        if update.message.text=="/meet":
+        if update.message.text.startswith("/meet"):
             if meeting:
                 update.message.reply_text("Встреча уже начата")
                 return
@@ -232,13 +237,13 @@ def process(update):
         if meeting['state']=='categories':
             update_categories(update, meeting)
             return
-        if update.message.text=="/calculate":
+        if update.message.text.startswith("/calculate"):
             calculate(update, meeting)
             return
-        if update.message.text=="/done":
+        if update.message.text.startswith("/done"):
             clear(update, meeting)
             return
-        if update.message.text=="/show":
+        if update.message.text.startswith("/show"):
             show(update, meeting)
             return
         if update.message.text.startswith("/add"):
