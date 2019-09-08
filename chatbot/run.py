@@ -168,7 +168,7 @@ def write_location(update, meeting, uid, location):
     make_request("AddLocation", {"coordinate": location, "memberId": uid, "groupUid": str(meeting['guid'])})
     save_meeting(meeting)
     if meeting['state'] == 'calculated':
-        send_link(update, meeting)
+        calculate(update, meeting)
 
 
 def send_link(update, meeting):
@@ -219,7 +219,7 @@ def show(update, meeting):
 def process(update):
     if update.message:  # your bot can receive updates without messages
         meeting = get_meeting(update.message.chat)
-        if update.message.text.startswith("/meet"):
+        if update.message.text and update.message.text.startswith("/meet"):
             if meeting:
                 update.message.reply_text("Встреча уже начата")
                 return
