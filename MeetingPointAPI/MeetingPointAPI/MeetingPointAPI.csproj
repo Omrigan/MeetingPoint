@@ -24,4 +24,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Examples" Version="2.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

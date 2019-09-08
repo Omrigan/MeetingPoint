@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MeetingPointAPI.Repositories
@@ -21,7 +22,7 @@ namespace MeetingPointAPI.Repositories
 
         private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
-        public async Task InsertLocation(GroupMemberLocationVM groupMemberLocation)
+        public async Task InsertMemberLocation(GroupMemberLocationVM groupMemberLocation)
         {
             var sqlCommand = new CommandDefinition(@"
                 insert [dbo].[MemberLocations] (MemberId, GroupUid, Latitude, Longitude)
@@ -81,7 +82,7 @@ namespace MeetingPointAPI.Repositories
         {
             var locationId = await GetMemberLocationId(groupMemberLocation.MemberId, groupMemberLocation.GroupUid);
             if (!locationId.HasValue)
-                await InsertLocation(groupMemberLocation);
+                await InsertMemberLocation(groupMemberLocation);
             else
                 await UpdateLocation(locationId.Value, groupMemberLocation.Coordinate);
         }
@@ -151,20 +152,34 @@ namespace MeetingPointAPI.Repositories
                 await conn.ExecuteAsync(sqlCommand);
         }
 
-        public async Task InsertRoute(RouteEntity routeEntity)
+        public async Task<IEnumerable<RouteEntity>> InsertRoutes(IEnumerable<RouteEntity> routes)
+        {
+            if (routes == null || !routes.Any())
+                return Enumerable.Empty<RouteEntity>();
+
+            return await Task.WhenAll(routes.Select(route => InsertRoute(route)));
+        }
+
+        public async Task<RouteEntity> InsertRoute(RouteEntity routeEntity)
         {
             var sqlCommand = new CommandDefinition(@"
-                insert [dbo].[Routes] (GroupUid, LocationId, MemberRoutes)
-                values (@groupUid, @locationId, @memberRoutes)",
+                insert [dbo].[Routes] (GroupUid, LocationId, MemberRoutes, SumTime)
+                values (@groupUid, @locationId, @memberRoutes, @sumTime);
+
+                SELECT CAST(SCOPE_IDENTITY() as int)",
             new
             {
                 @groupUid = routeEntity.GroupUid,
-                @locationId = routeEntity.LocatioId,
-                @memberRoutes = routeEntity.MemberRoutes
+                @locationId = routeEntity.LocationId,
+                @memberRoutes = routeEntity.MemberRoutes,
+                @sumTime = routeEntity.SumTime
             });
 
             using (var conn = CreateConnection())
-                await conn.ExecuteAsync(sqlCommand);
+            {
+                routeEntity.Id = (await conn.QueryFirstOrDefaultAsync(typeof(int), sqlCommand) as int?).Value;
+                return routeEntity;
+            }
         }
 
         public async Task<IEnumerable<RouteEntity>> GetRoutes(Guid groupUid)
@@ -177,6 +192,62 @@ namespace MeetingPointAPI.Repositories
 
             using (var conn = CreateConnection())
                 return await conn.QueryAsync<RouteEntity>(sqlCommand);
+        }
+
+        public async Task<IEnumerable<LocationEntity>> InsertLocations(IEnumerable<LocationEntity> locations)
+        {
+            if (locations == null || !locations.Any())
+                return Enumerable.Empty<LocationEntity>();
+
+            return await Task.WhenAll(locations.Select(location => InsertLocation(location)));
+        }
+
+        public async Task<LocationEntity> InsertLocation(LocationEntity location)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                insert [dbo].[Locations] (Title, Longitude, Latitude, Type, Vicinity, Icon, Href, Distance, Category)
+                values (@title, @longitude, @latitude, @type, @vicinity, @icon, @href, @distance, @category);
+
+                SELECT CAST(SCOPE_IDENTITY() as int)",
+                new
+                {
+                    @title = location.Title,
+                    @longitude = location.Longitude,
+                    @latitude = location.Latitude,
+                    @type = location.Type,
+                    @vicinity = location.Vicinity,
+                    @icon = location.Icon,
+                    @href = location.Href,
+                    @distance = location.Distance,
+                    @category = location.Category
+                });
+
+            using (var conn = CreateConnection())
+            {
+                location.Id = (await conn.QueryFirstOrDefaultAsync(typeof(int), sqlCommand) as int?).Value;
+                return location;
+            }
+        }
+
+        public async Task<IEnumerable<RoutesToLocationEntity>> GetPotentialMembersRoutes(Guid groupUid)
+        {
+            var sqlCommand = new CommandDefinition(@"
+                SELECT Routes.*, Locations.*
+                FROM [dbo].[Routes]
+                join [dbo].[Locations] on Locations.Id = Routes.LocationId
+                where Routes.GroupUid = @groupUid
+                order by SumTime",
+                new { @groupUid = groupUid });
+
+            using (var conn = CreateConnection())
+            {
+                return await conn.QueryAsync<RouteEntity, LocationEntity, RoutesToLocationEntity>(sqlCommand, 
+                    (memberRoute, location) => new RoutesToLocationEntity
+                    {
+                        MemberRoutes = memberRoute,
+                        Place = location
+                    }, "Id");
+            }
         }
     }
 }

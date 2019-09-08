@@ -1,10 +1,12 @@
-﻿using MeetingPointAPI.Helpers;
+﻿using MeetingPointAPI.Entities;
+using MeetingPointAPI.Helpers;
 using MeetingPointAPI.Models;
 using MeetingPointAPI.Repositories;
 using MeetingPointAPI.Services.Interfaces;
 using MeetingPointAPI.ViewModels;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,11 +21,15 @@ namespace MeetingPointAPI.Controllers
     {
         private readonly IHereService _hereService;
         private readonly DBRepository _dbRepository;
+        private readonly IRouteSearcher _routeSearcher;
+        private readonly AppSettings _appSettings;
 
-        public MeetingPointController(IHereService hereService, DBRepository dbRepository)
+        public MeetingPointController(AppSettings appSettings, IHereService hereService, DBRepository dbRepository, IRouteSearcher routeSearcher)
         {
             _hereService = hereService;
             _dbRepository = dbRepository;
+            _routeSearcher = routeSearcher;
+            _appSettings = appSettings;
         }
 
         /// <summary> Метод добавления местоположения участника группы </summary>
@@ -71,8 +77,8 @@ namespace MeetingPointAPI.Controllers
                 return BadRequest();
 
             var memberLocations = (await _dbRepository.GetGroupMemberLocations(groupMemberLocationVM.GroupUid))?.ToList();
-            if (memberLocations == null || memberLocations.Count <= 1)
-                return Forbid();
+            if (memberLocations == null)
+                return NoContent();
 
             var locations = memberLocations.Select(m => m.GetCoordinate()).ToList();
             var targetPoint = CoordinateHelper.GetTargetCoordinate(locations);
@@ -82,24 +88,55 @@ namespace MeetingPointAPI.Controllers
             if (result == null || result?.Results?.Items == null || !result.Results.Items.Any())
                 return NoContent();
 
-            await SavePotentialRoutes(groupMemberLocationVM.GroupUid, result.Results.Items);
+            await SavePotentialRoutes(groupMemberLocationVM.GroupUid, memberLocations, groupMemberLocationVM.Time ?? DateTime.Now, result.Results.Items);
 
-            return Ok(result);
+            var webSiteEndpoint = $"{_appSettings.WebSiteDomain}/result/{groupMemberLocationVM.GroupUid}";
+            return Ok(webSiteEndpoint);
         }
 
         /// <summary> Метод получения результата по сбору группы </summary>
         [HttpGet(nameof(GetResult) + "/{groupUid}")]
         public async Task<IActionResult> GetResult([FromRoute]Guid groupUid)
         {
+            var routes = await _dbRepository.GetPotentialMembersRoutes(groupUid);
 
-            return Ok();
+            var result = routes.Select(route => new RoutesToPlace
+            {
+                GroupUid = route.MemberRoutes.GroupUid,
+                Place = ModelConverter.ToPlace(route.Place),
+                MemberRoutes = JsonConvert.DeserializeObject<List<MemberRoute>>(route.MemberRoutes.MemberRoutes)
+            });
+
+            return Ok(result);
         }
 
-        private async Task SavePotentialRoutes(Guid groupUid, IEnumerable<HereExploreItem> places)
+        private async Task SavePotentialRoutes(Guid groupUid, List<MemberLocationEntity> memberLocations, DateTime time, IEnumerable<HereExploreItem> places)
         {
             await _dbRepository.RemoveAllRoutes(groupUid);
 
+            var groupRoutes = (await Task.WhenAll(places.Take(_appSettings.PlacesLimit).Select(place =>
+                _routeSearcher.GetGroupRoutes(memberLocations, place.Title, place.GetCoordinate(), time)))).ToList();
 
+            var locations = await _dbRepository.InsertLocations(places.Take(_appSettings.PlacesLimit).Select(place => new LocationEntity
+            {
+                Title = place.Title,
+                Longitude = place.Position[1],
+                Latitude = place.Position[0],
+                Category = place.Category?.Title,
+                Distance = place.Distance,
+                Href = place.Href,
+                Icon = place.Icon,
+                Vicinity = place.Vicinity,
+                Type = place.Type
+            }));
+
+            await _dbRepository.InsertRoutes(groupRoutes.Select(groupRoute => new RouteEntity
+            {
+                GroupUid = groupUid,
+                LocationId = locations.First(location => location.Title == groupRoute.Title).Id,
+                SumTime = (int)groupRoute.SumTime,
+                MemberRoutes = JsonConvert.SerializeObject(groupRoute.MemberRoutes)
+            }));
         }
     }
 }
