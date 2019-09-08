@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>123</title>
+    <title>Meeting point</title>
     <style>
     body {
         margin: 0;
@@ -24,6 +24,7 @@
     <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js" charset="utf-8"></script>
     <script src="https://js.api.here.com/v3/3.0/mapsjs-pano.js" type="text/javascript" charset="utf-8"></script>
     <div id="map" style="height: 100vh; width: 100%;"></div>
+      <div id="panel"></div>
     <script>
         let platform = new H.service.Platform({
             app_id: 'UdRH6PlISTlADYsW6mzl',
@@ -77,9 +78,8 @@
         var is_from_a_to_b = 0;
         var from_a_to_b_relax_points = [];
 
-        main(map);
+        main(map, platform);
 
-	console.log("Hello");
     </script>
 </body>
 
