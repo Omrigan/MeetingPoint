@@ -34,7 +34,7 @@ namespace MeetingPointAPI.Helpers
                     maxDistance = distance;
             }
 
-            return maxDistance == double.MinValue ? 1000 : Math.Sqrt(maxDistance) * 111;
+            return maxDistance == double.MinValue ? 1000 : Math.Sqrt(maxDistance) * 1110;
         }
     }
 }

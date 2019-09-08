@@ -18,7 +18,7 @@ namespace MeetingPointAPI.Helpers
                 var responseBody = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(responseBody);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

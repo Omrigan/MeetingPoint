@@ -80,12 +80,10 @@ namespace MeetingPointAPI.Controllers
             if (memberLocations == null)
                 return NoContent();
 
-            var locations = memberLocations.Select(m => m.GetCoordinate()).ToList();
-            var targetPoint = CoordinateHelper.GetTargetCoordinate(locations);
-            var radius = CoordinateHelper.GetMaxDistance(targetPoint, locations);
+            var targetPoint = CoordinateHelper.GetTargetCoordinate(memberLocations.Select(m => m.GetCoordinate()));
 
-            var result = await _hereService.GetPlaces(targetPoint, groupMemberLocationVM.Category, (int)radius);
-            if (result == null || result?.Results?.Items == null || !result.Results.Items.Any())
+            var result = await GetPlaces(targetPoint, groupMemberLocationVM.Category);
+            if (result == null)
                 return NoContent();
 
             await SavePotentialRoutes(groupMemberLocationVM.GroupUid, memberLocations, groupMemberLocationVM.Time ?? DateTime.Now, result.Results.Items);
@@ -137,6 +135,18 @@ namespace MeetingPointAPI.Controllers
                 SumTime = (int)groupRoute.SumTime,
                 MemberRoutes = JsonConvert.SerializeObject(groupRoute.MemberRoutes)
             }));
+        }
+
+        private async Task<HereExploreResponseResult> GetPlaces(Coordinate targetPoint, IEnumerable<string> categories)
+        {
+            var radiuses = new List<int> { 500, 1000, 5000, 10000, 50000, 100000 };
+            foreach(var radius in radiuses)
+            {
+                var result = await _hereService.GetPlaces(targetPoint, categories, radius);
+                if (result != null && result?.Results?.Items != null && result.Results.Items.Any())
+                    return result;
+            }
+            return null;
         }
     }
 }
