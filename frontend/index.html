@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Meeting point</title>
+    <style>
+    body {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    </style>
+    <script src="points.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+</head>
+
+<body>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-core.js" charset="utf-8"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-service.js" charset="utf-8"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js" charset="utf-8"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js" charset="utf-8"></script>
+    <script src="https://js.api.here.com/v3/3.0/mapsjs-pano.js" type="text/javascript" charset="utf-8"></script>
+    <div id="map" style="height: 100vh; width: 100%;"></div>
+      <div id="panel"></div>
+    <script>
+        let platform = new H.service.Platform({
+            app_id: 'UdRH6PlISTlADYsW6mzl',
+            app_code: 'lfrrTheP9nBedeJyy1NtIA',
+            useHTTPS: true
+        });
+
+
+        const pixelRatio = window.devicePixelRatio || 1;
+        const defaultLayers = platform.createDefaultLayers({
+            lg: 'rus',
+            tileSize: pixelRatio === 1 ? 256 : 512,
+            ppi: pixelRatio === 1 ? undefined : 320
+        });
+        let map = new H.Map(
+            document.getElementById('map'),
+            defaultLayers.normal.map, {
+                zoom: 10,
+                center: {
+                    lat: 44.73,
+                    lng: 37.76
+                }
+            }, {
+                pixelRatio
+            }
+        );
+
+        const behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+
+        const ui = H.ui.UI.createDefault(map, defaultLayers, 'ru-RU');
+
+        const mapSettings = ui.getControl('mapsettings');
+        const zoom = ui.getControl('zoom');
+        const scalebar = ui.getControl('scalebar');
+        const pano = ui.getControl('panorama');
+
+        scalebar.setVisibility(false);
+
+        mapSettings.setAlignment('bottom-center');
+        zoom.setAlignment('bottom-center');
+        pano.setAlignment('bottom-center');
+
+        // map.addEventListener('mapviewchange', () => {
+        //     clearTimeout(this.updateTimeout);
+        //     if (map.getZoom() > 0) {
+        //         updateTimeout = setTimeout(() => {
+        //             getPlacesData();
+        //         }, 1500);
+        //     }
+        // });
+        var is_from_a_to_b = 0;
+        var from_a_to_b_relax_points = [];
+
+        main(map, platform);
+
+    </script>
+</body>
+
+</html>

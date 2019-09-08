@@ -1,4 +1,5 @@
-﻿using MeetingPointAPI.Models;
+﻿using MeetingPointAPI.Entities;
+using MeetingPointAPI.Models;
 using MeetingPointAPI.Repositories;
 using MeetingPointAPI.Services.Interfaces;
 using System;
@@ -19,9 +20,30 @@ namespace MeetingPointAPI.Services
             _dbRepository = dbRepository;
         }
 
-        public async Task<List<TargetRoute>> GetRoutes(Coordinate from, Coordinate to, DateTime time) => await GetHereRoutes(from, to, time);
+        public async Task<GroupRoutes> GetGroupRoutes(List<MemberLocationEntity> memberLocations, string title, Coordinate to, DateTime time)
+        {
+            var groupRoutes = (await Task.WhenAll(memberLocations
+                .Select(memberLocation => GetMemberRoutes(memberLocation.MemberId, memberLocation.GetCoordinate(), to, time)))).ToList();
 
-        private async Task<List<TargetRoute>> GetHereRoutes(Coordinate from, Coordinate to, DateTime time, bool allowPedestrian = false)
+            return new GroupRoutes
+            {
+                MemberRoutes = groupRoutes,
+                SumTime = groupRoutes.Sum(route => route.Route.First().TravelTime),
+                Title = title
+            };
+        }
+
+        public async Task<MemberRoute> GetMemberRoutes(string memberId, Coordinate from, Coordinate to, DateTime time)
+        {
+            return new MemberRoute
+            {
+                MemberLocation = from,
+                MemberId = memberId,
+                Route = await GetHereRoutes(from, to, time)
+            };
+        }
+
+        public async Task<List<TargetRoute>> GetHereRoutes(Coordinate from, Coordinate to, DateTime time, bool allowPedestrian = false)
         {
             var result = await _hereService.GetRoutes(time, from, to);
             if (result == null && allowPedestrian)
