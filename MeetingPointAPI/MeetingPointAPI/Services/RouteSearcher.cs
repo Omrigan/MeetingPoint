@@ -24,13 +24,12 @@ namespace MeetingPointAPI.Services
         {
             var groupRoutes = (await Task.WhenAll(memberLocations
                 .Select(memberLocation => GetMemberRoutes(memberLocation.MemberId, memberLocation.GetCoordinate(), to, time))))
-                .Where(route => route.Route != null)
                 .ToList();
 
             return new GroupRoutes
             {
                 MemberRoutes = groupRoutes,
-                SumTime = groupRoutes.Sum(route => route.Route.First().TravelTime),
+                SumTime = groupRoutes.Sum(route => route.Route.FirstOrDefault()?.TravelTime ?? 10000),
                 Title = title
             };
         }
@@ -41,7 +40,7 @@ namespace MeetingPointAPI.Services
             {
                 MemberLocation = from,
                 MemberId = memberId,
-                Route = await GetHereRoutes(from, to, time)
+                Route = await GetHereRoutes(from, to, time) ?? new List<TargetRoute>()
             };
         }
 
