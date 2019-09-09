@@ -1,12 +1,34 @@
+var mapContainer;
+var  routeInstructionsContainer;
 function draw_single(map, platform, place) {
 	console.log(place)
-	var marker = new H.map.Marker({
+		var pngIcon = new H.map.Icon("/crown.png",  {size: {w: 32, h: 32}});
+	const coords = 		{
 	  lat:place.place.coordinate.latitude,
 	  lng:place.place.coordinate.longitude
-	});
+	}
+
+  var summaryDiv = document.createElement('div'),
+   content = '<h1> О Месте </h1>';
+   content += 'Название: ' + place.place.title + '<br>';
+   content += 'Ссылка: <a href="' + place.place.href + '">' + place.place.href + '</a><br>';
+
+  summaryDiv.style.fontSize = 'small';
+  summaryDiv.style.marginLeft ='5%';
+  summaryDiv.style.marginRight ='5%';
+  summaryDiv.innerHTML = content;
+  routeInstructionsContainer.appendChild(summaryDiv);
+
+	var marker = new H.map.Marker(coords, {icon: pngIcon});
+	map.setCenter(coords);
 	console.log(marker);
 	map.addObject(marker);
 	place.memberRoutes.map(member => draw_member(map, platform, place, member))
+}
+
+function getGroupId() {
+ const arr = window.location.href.split("/");
+ return arr[arr.length-1];
 }
 
 function convertLocation(loc) {
@@ -21,33 +43,50 @@ function draw_member(map, platform, place, member) {
 	});
 	map.addObject(marker);
 	draw_route(map, platform, convertLocation(member.memberLocation), 
-		convertLocation(place.place.coordinate));
+		convertLocation(place.place.coordinate), member);
 
 }
 
-var mapContainer;
-var  routeInstructionsContainer;
 
 
-function draw_route(map, platform, from, to) {
+function draw_route(map, platform, from, to, member) {
 	var router = platform.getRoutingService(),
 	  routeRequestParams = {
-	    mode: 'fastest;car',
+	    mode: 'fastest;publicTransport',
 	    representation: 'display',
 	    routeattributes: 'waypoints,summary,shape,legs',
 	    maneuverattributes: 'direction,action',
 	    waypoint0: from, // Brandenburg Gate
-	    waypoint1: to  // Friedrichstraße Railway Station
+	    waypoint1: to,  // Friedrichstraße Railway Station
+	    language: 'ru-ru'
 	  };
 	function onSuccess(result) {
-	  var route = result.response.route[0];
 	 /*
 	  * The styling of the route response on the map is entirely under the developer's control.
 	  * A representitive styling can be found the full JS + HTML code of this example
 	  * in the functions below:
 	  */
-	  addRouteShapeToMap(map, route);
 
+
+	  console.log(member);
+  var summaryDiv = document.createElement('div'),
+   content = '<h1>' +  member.memberId + '</h1>';
+		if(!result.response) {
+		content+= 'Доехать не получится :(';
+		}
+
+  summaryDiv.style.fontSize = 'small';
+  summaryDiv.style.marginLeft ='5%';
+  summaryDiv.style.marginRight ='5%';
+  summaryDiv.innerHTML = content;
+  routeInstructionsContainer.appendChild(summaryDiv);
+		if(!result.response) {
+			return
+		}
+
+	  var route = result.response.route[0];
+
+	  addRouteShapeToMap(map, route);
 	  addWaypointsToPanel(route.waypoint);
 	  addManueversToPanel(route);
 	  addSummaryToPanel(route.summary);
@@ -63,15 +102,16 @@ function draw_route(map, platform, from, to) {
 }
 
 function draw_all(map, platform, data) {
-	draw_single(map, platform, data[0])
 	mapContainer = document.getElementById('map');
   routeInstructionsContainer = document.getElementById('panel');
+	draw_single(map, platform, data[0])
 
 
 }
 
 function main(map, platform) {
-	const data = fetch("http://meetingpointserver.azurewebsites.net/api/MeetingPoint/GetResult/e5adadb9-1893-4226-9f77-4bdce46f9788").then(data => data.json()).then(data=> draw_all(map, platform, data));
+	const data = fetch("http://meetingpointserver.azurewebsites.net/api/MeetingPoint/GetResult/"+getGroupId()).then(data => data.json()).then(data=> draw_all(map, platform, data));
+
 
 }
 
@@ -204,7 +244,7 @@ function addWaypointsToPanel(waypoints){
 
    nodeH3.textContent = waypointLabels.join(' - ');
 
-  routeInstructionsContainer.innerHTML = '';
+  //routeInstructionsContainer.innerHTML = '';
   routeInstructionsContainer.appendChild(nodeH3);
 }
 
