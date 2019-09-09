@@ -231,7 +231,7 @@ def process(update):
         if update.message.location:
             location = update.message.location
             location = {'longitude': location.longitude, 'latitude': location.latitude} 
-            uid = "@" + (update.effective_user.username or update.effective_user.id)
+            uid = "@" + (update.effective_user.username or update.effective_user.first_name)
             write_location(update, meeting, uid, location)
             return
         if meeting['state']=='categories':

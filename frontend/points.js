@@ -207,7 +207,7 @@ function addManueversToMap(route){
       // Add a marker to the maneuvers group
       var marker =  new H.map.Marker({
         lat: maneuver.position.latitude,
-        lng: maneuver.position.longitude} ,
+        lng: maneuver.position.longitude},
         {icon: dotIcon});
       marker.instruction = maneuver.instruction;
       group.addObject(marker);
@@ -236,6 +236,8 @@ function addWaypointsToPanel(waypoints){
   var nodeH3 = document.createElement('h3'),
     waypointLabels = [],
     i;
+  nodeH3.style.marginLeft ='5%';
+  nodeH3.style.marginRight ='5%';
 
 
    for (i = 0;  i < waypoints.length; i += 1) {
@@ -253,10 +255,13 @@ function addWaypointsToPanel(waypoints){
  * @param {Object} route  A route as received from the H.service.RoutingService
  */
 function addSummaryToPanel(summary){
+	const hh = Math.floor(summary.travelTime/3600);
+	const mm = Math.floor(summary.travelTime/60)%60;
   var summaryDiv = document.createElement('div'),
    content = '';
-   content += '<b>Total distance</b>: ' + summary.distance  + 'm. <br/>';
-   content += '<b>Travel Time</b>: ' + summary.travelTime + ' (in current traffic)';
+   content += '<b>Расстояние</b>: ' + summary.distance  + ' метров <br/>';
+   content += '<b>Итого времени</b>: ' + hh + ' часов ' + mm + ' минут'; 
+   console.log(summary.travelTime);
 
 
   summaryDiv.style.fontSize = 'small';
